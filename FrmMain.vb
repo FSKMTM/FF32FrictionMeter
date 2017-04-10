@@ -4,7 +4,7 @@
     Dim bytResponse() As Byte = Nothing
     Dim outfile As System.IO.StreamWriter
     Private Sub FrmMain_Load(sender As Object, e As EventArgs) Handles Me.Load
-        Label1.Font = New Font("Arial", Label1.Height * 0.6)
+        SetFontSize()
         InitFF()
     End Sub
     Private Function ConvertPinName2PinBlock(ByVal strPin As String) As Byte
@@ -30,6 +30,7 @@
         Else
             Timer1.Start()
             BtnStart.Text = "Stop"
+            ProgressBar1.Value = 0
         End If
     End Sub
 
@@ -58,6 +59,7 @@
         Dim startTime As Date
         Dim timeDiff As TimeSpan
         Dim millis As Long = 0
+        Dim recorded(0 To 200) As Double
         Timer1.Stop()
         BtnStart.Text = "Start"
         BtnStart.Enabled = False
@@ -68,6 +70,14 @@
         outfile = My.Computer.FileSystem.OpenTextFileWriter(filename, False)
         outfile.WriteLine("Time [ms]" & vbTab & "Ft/Fn")
         SendMessage(ProgressBar1.Handle, (1024 + 16), 3, 0)
+        Label1.Text = "Ready."
+        Label1.Refresh()
+        For n = 0 To 1000
+            If (readAnalog("B1") - My.Settings.zeroOffset) > 0.05 Then
+                Exit For
+            End If
+            System.Threading.Thread.Sleep(5)
+        Next
         For readingCount = 0 To 199
             timeDiff = New TimeSpan(0)
             friction = (readAnalog("B1") - My.Settings.zeroOffset) / (My.Settings.ownWeight - My.Settings.zeroOffset)
@@ -83,10 +93,12 @@
             End While
             millis += timeDiff.TotalMilliseconds
             outfile.WriteLine(millis.ToString & vbTab & friction.ToString("F3"))
+            recorded(readingCount) = friction
         Next
         outfile.Close()
         SendMessage(ProgressBar1.Handle, (1024 + 16), 1, 0)
         ProgressBar1.Value = 100
+        Label1.Text = recorded.Skip(100).Average.ToString("F2") & ";" & recorded.Max().ToString("F2")
         BtnStart.Enabled = True
         BtnRecord.Enabled = True
         BtnCalibrate.Enabled = True
@@ -126,6 +138,8 @@
             'Me.Close()
             Return
         End If
+        Label1.Text = "0.000"
+        ProgressBar1.Value = 0
     End Sub
     Private Sub Calibrate()
         Dim result As MsgBoxResult
@@ -179,10 +193,13 @@
         BtnStart.Text = "Start"
         Calibrate()
     End Sub
-
-    Private Sub FrmMain_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
+    Private Sub SetFontSize()
         Dim fhgt As Integer
-        fhgt = Math.Min(Label1.Height * 0.6, Label1.Width * 0.2)
+        fhgt = Math.Min(Label1.Height * 0.75, Label1.Width * 0.14)
         Label1.Font = New Font("Arial", fhgt)
+    End Sub
+
+    Private Sub FrmMain_Resize(sender As Object, e As EventArgs) Handles Me.Resize
+        SetFontSize()
     End Sub
 End Class

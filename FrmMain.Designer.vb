@@ -23,6 +23,7 @@ Partial Class FrmMain
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FrmMain))
         Me.BtnStart = New System.Windows.Forms.Button()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
@@ -110,6 +111,7 @@ Partial Class FrmMain
         Me.Controls.Add(Me.BtnRecord)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.BtnStart)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MinimumSize = New System.Drawing.Size(300, 200)
         Me.Name = "FrmMain"
         Me.Text = "Friction Meter"
